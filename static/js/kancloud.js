@@ -141,11 +141,10 @@ function renderPage($data) {
     $("#article-info").text($data.doc_info);
     $("#view_count").text("阅读次数：" + $data.view_count);
     $("#doc_id").val($data.doc_id);
+    checkMarkdownTocElement();
     if ($data.page) {
         loadComment($data.page, $data.doc_id);
-
-    }
-    else {
+    } else {
         pageClicked(-1, $data.doc_id);
     }
 
@@ -156,6 +155,7 @@ function renderPage($data) {
         $("#view_container").removeClass("theme__dark theme__green theme__light theme__red theme__default")
         $("#view_container").addClass($data.markdown_theme)
     }
+
 }
 
 /***
@@ -229,7 +229,24 @@ function initHighlighting() {
     }
 }
 
+function handleEvent(event) {
+    switch (event.keyCode) {
+        case 70: // ctrl + f 打开搜索面板 并获取焦点
+            $(".navg-item[data-mode='search']").click();
+            document.getElementById('searchForm').querySelector('input').focus();
+            event.preventDefault();
+            break;
+        case 27: // esc 关闭搜索面板
+            $(".navg-item[data-mode='view']").click();
+            event.preventDefault();
+            break;
+    }
+}
+
 $(function () {
+    window.addEventListener('keydown', handleEvent)
+
+    checkMarkdownTocElement();
     $(".view-backtop").on("click", function () {
         $('.manual-right').animate({ scrollTop: '0px' }, 200);
     });
@@ -280,7 +297,7 @@ $(function () {
 
 
     $(window).resize(function (e) {
-        var h = $(".manual-catalog").innerHeight() - 20;
+        var h = $(".manual-catalog").innerHeight() - 50;
         $(".markdown-toc").height(h);
     }).resize();
 
@@ -332,6 +349,11 @@ $(function () {
         var mode = $(this).data('mode');
         $(this).siblings().removeClass('active').end().addClass('active');
         $(".m-manual").removeClass("manual-mode-view manual-mode-collect manual-mode-search").addClass("manual-mode-" + mode);
+    });
+
+    const input = document.getElementById('searchForm').querySelector('input');
+    input.addEventListener('input', function() {
+        $("#btnSearch").click();
     });
 
     /**
@@ -417,4 +439,21 @@ function loadCopySnippets() {
     [].forEach.call(snippets, function (snippet) {
         Prism.highlightElement(snippet);
     });
+}
+
+function checkMarkdownTocElement() {
+    let toc = $(".markdown-toc-list");
+    if ($(".toc").length) {
+        toc = $(".toc");
+    }
+    let articleComment = $("#articleComment");
+    if (toc.length) {
+        $(".wiki-bottom-left").css("width", "calc(100% - 260px)");
+        articleComment.css("width", "calc(100% - 260px)");
+        articleComment.css("margin", "30px 0 70px 0");
+    } else {
+        $(".wiki-bottom-left").css("width", "100%");
+        articleComment.css("width", "100%");
+        articleComment.css("margin", "30px auto 70px auto;");
+    }
 }
